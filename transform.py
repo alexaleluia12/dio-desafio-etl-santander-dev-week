@@ -1,18 +1,30 @@
-
+import sys
+import numpy as np
 
 def format_client(client):
     """
-    client: {
+    input -> client: {
         dados_pessoais: df,
         compras: df,
         sm: list
     }
-    criar dict de saida no padrao
-    {
-        id:int, nome:str, compras:[{id:int, valor:float, data:str}], sm: list[str]
-    }
     """
-    pass
+    new_client = {
+        "id": int(client['dados_pessoais'].iloc[0, 0]),
+        "nome": client['dados_pessoais'].iloc[0, 1],
+        "address": client['dados_pessoais'].iloc[0, 2],
+        "phone": client['dados_pessoais'].iloc[0, 3],
+        "sm": client['sm'],
+        "compras": [
+            {"id": int(c[0]), "valor": float(c[1]), "data": c[2]}
+            for c in client['compras'].iloc[:, 1:].to_numpy()
+        ]
+    }
+
+    phone = new_client['phone'] # pode nao existir e o pandas lê como NaN
+    new_client['phone'] = None if np.isnan(phone) else str(phone)[:-2]
+
+    return new_client
 
 
 def clients_from(inputs: list):
@@ -39,6 +51,6 @@ def clients_from(inputs: list):
 
                 raw_clients[cid]['sm'] = [k['links'] for k in e.value if k['id_cliente'] == cid][0]
             else:
-                print('Erro tipo nao definido')
+                print('Erro tipo nao definido', file=sys.stderr)
 
     return raw_clients
